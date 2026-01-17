@@ -2,6 +2,11 @@
 // Global variables
 // -------------------
 let scale = 75; // Initial anger level (0 = angry, 100 = calm)
+const appConfig = window.APP_CONFIG || {};
+const defaultApiBase = (window.location.origin && window.location.origin !== 'null')
+    ? window.location.origin
+    : 'http://localhost:8888';
+const apiBase = appConfig.apiBase || defaultApiBase;
 
 // -------------------
 // Update scale and image
@@ -94,7 +99,7 @@ async function sendValue() {
     gfText.innerHTML = '<p>Thinking...</p>';
 
     try {
-        const response = await fetch('http://localhost:8888/api/chat', {
+        const response = await fetch(new URL('/api/chat', apiBase), {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ message })
@@ -116,7 +121,7 @@ async function sendValue() {
         }
     } catch (err) {
         console.error(err);
-        gfText.innerHTML = `<p style="color: red;">Failed to connect to server. Make sure it is running on http://localhost:8888</p>`;
+        gfText.innerHTML = `<p style="color: red;">Failed to connect to server. Make sure it is running on ${apiBase}</p>`;
     } finally {
         // ----------------
         // Hide loading and show normal sprite

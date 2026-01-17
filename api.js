@@ -1,13 +1,19 @@
 let ws;
+const appConfig = window.APP_CONFIG || {};
 
 // Wait for DOM to load before initializing WebSocket
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize WebSocket connection
     try {
-        ws = new WebSocket('ws://localhost:8765');
+        const wsProtocol = appConfig.wsProtocol || (window.location.protocol === 'https:' ? 'wss' : 'ws');
+        const wsHost = appConfig.wsHost || window.location.hostname || 'localhost';
+        const wsPort = appConfig.wsPort || '8765';
+        const wsPath = appConfig.wsPath || '';
+        const wsUrl = `${wsProtocol}://${wsHost}${wsPort ? `:${wsPort}` : ''}${wsPath}`;
+        ws = new WebSocket(wsUrl);
 
         ws.onopen = () => {
-            console.log("Connected to websocket port 8765.");
+            console.log(`Connected to websocket: ${wsUrl}`);
         }
 
         ws.onmessage = (e) => {
