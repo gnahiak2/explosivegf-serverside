@@ -190,12 +190,19 @@ async function sendValue() {
     gfText.innerHTML = '<p>Thinking...</p>';
     
     try {
+        // Get user's facial expression from the userFaceGesture div
+        const userFaceGesture = document.getElementById('userFaceGesture');
+        const userExpression = userFaceGesture ? userFaceGesture.textContent : 'neutral';
+        
         const response = await fetch('http://localhost:8888/api/chat', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ message: message })
+            body: JSON.stringify({ 
+                message: message,
+                user_expression: userExpression  // Send the expression too
+            })
         });
         
         if (!response.ok) {
