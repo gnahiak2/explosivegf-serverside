@@ -1,9 +1,10 @@
 """
 Explosive Girlfriend AI - Core Module
-Uses Google Gemini API to implement emotion system and conversation functionality
+Facial expression is CONTEXT ONLY (no backend emotion math)
 """
 
 import os
+import json
 from typing import List, Dict, Optional
 from datetime import datetime
 
@@ -15,52 +16,76 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
+# -------------------- Models --------------------
+
 class AIResponse(BaseModel):
-    """AI response data model"""
     anger_level: int = Field(ge=0, le=120)
     response: str
 
 
+# -------------------- Helpers --------------------
+
+def parse_ai_response(raw_text: str) -> dict:
+    """
+    Gemini may return:
+    - JSON object
+    - JSON list with one object
+    Normalize it.
+    """
+    data = json.loads(raw_text)
+
+    if isinstance(data, list):
+        if not data:
+            raise ValueError("Empty list returned from model")
+        return data[0]
+
+    if isinstance(data, dict):
+        return data
+
+    raise ValueError("Invalid JSON format from model")
+
+
+# -------------------- Conversation --------------------
+
 class ConversationHistory:
     def __init__(self, max_history: int = 10):
         self.history: List[Dict] = []
-        self.max_history = max_history
         self.emotion_history: List[Dict] = []
+        self.max_history = max_history
 
     def add_message(self, role: str, content: str, anger_level: Optional[int] = None):
-        message = {
+        msg = {
             "role": role,
             "content": content,
             "timestamp": datetime.now().isoformat()
         }
 
         if anger_level is not None:
-            message["anger_level"] = anger_level
+            msg["anger_level"] = anger_level
             self.emotion_history.append({
                 "anger_level": anger_level,
                 "timestamp": datetime.now().isoformat()
             })
 
-        self.history.append(message)
+        self.history.append(msg)
 
         if len(self.history) > self.max_history:
             self.history = self.history[-self.max_history:]
 
     def get_recent_history(self, n: int = 5) -> str:
         recent = self.history[-n * 2:] if len(self.history) > n * 2 else self.history
-        formatted = []
-
-        for msg in recent:
-            role = "User" if msg["role"] == "user" else "Girlfriend"
-            formatted.append(f"{role}: {msg['content']}")
-
-        return "\n".join(formatted)
+        return "\n".join(
+            f"{'User' if m['role']=='user' else 'Girlfriend'}: {m['content']}"
+            for m in recent
+        )
 
     def get_last_anger_level(self) -> int:
         if self.emotion_history:
             return self.emotion_history[-1]["anger_level"]
         return 75  # default starting anger
 
+
+# -------------------- AI Core --------------------
 
 class ExplosiveGirlfriendAI:
     def __init__(self, api_key: Optional[str] = None):
@@ -81,21 +106,24 @@ class ExplosiveGirlfriendAI:
 You are a tsundere girlfriend AI.
 
 Personality:
-- Easily annoyed, emotionally reactive
+- Easily annoyed, emotional, dramatic
 - Tsundere: harsh words, hidden care
-- Jealous, sensitive, dramatic
+- Jealous and reactive
+
+Rules:
+- Always consider the user's FACIAL EXPRESSION when interpreting intent
+- Facial expression affects HOW you read the message, not WHAT they say
+- Anger scale: 0–120
+- At 100+, you completely lose control and use ALL CAPS
 
 IMPORTANT:
-- Always consider the user's facial expression when interpreting intent
-- Facial expression changes HOW you read their words, not WHAT they say
-
-Anger scale: 0–120
-100+ = TOTAL MELTDOWN, ALL CAPS, NO CONTROL
+- Return ONE JSON OBJECT ONLY
+- Do NOT wrap the response in a list
 """
 
     def _get_emotion_context(self, anger: int) -> str:
         if anger >= 100:
-            return "Current emotion: COMPLETE RAGE. SCREAM."
+            return "Current emotion: TOTAL RAGE. SCREAM."
         elif anger >= 80:
             return "Current emotion: Extremely angry."
         elif anger >= 60:
@@ -114,7 +142,7 @@ Anger scale: 0–120
 
         expression_context = f"""
 【User Facial Expression】
-The user's facial expression while saying this is: {user_expression.upper()}.
+The user's facial expression while speaking is: {user_expression.upper()}.
 Interpret emotional intent using this expression.
 """
 
@@ -147,7 +175,8 @@ Reply ONLY in JSON:
                 )
             )
 
-            ai_response = AIResponse.model_validate_json(response.text)
+            parsed = parse_ai_response(response.text)
+            ai_response = AIResponse.model_validate(parsed)
 
             self.conversation.add_message("user", user_input)
             self.conversation.add_message(
@@ -174,5 +203,6 @@ Reply ONLY in JSON:
         self.conversation = ConversationHistory()
 
     def get_emotion_status(self) -> Dict:
-        anger = self.conversation.get_last_anger_level()
-        return {"anger_level": anger}
+        return {
+            "anger_level": self.conversation.get_last_anger_level()
+        }
