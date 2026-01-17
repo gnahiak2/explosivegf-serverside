@@ -67,6 +67,7 @@ def chat():
             }), 400
 
         user_input = data['message'].strip()
+        user_expression = data.get('expression')  # <- NEW
 
         if not user_input:
             return jsonify({
@@ -74,7 +75,9 @@ def chat():
                 'error': 'Message cannot be empty'
             }), 400
 
-        result = ai.chat(user_input)
+        # Pass expression to AI logic
+        result = ai.chat(user_input, expression=user_expression)  # <- modify your AI method
+
         return jsonify(result), 200
 
     except Exception as e:
@@ -84,7 +87,6 @@ def chat():
             'anger_level': ai.conversation.get_last_anger_level(),
             'response': 'Hmph... something went wrong on the server side.'
         }), 500
-
 
 @app.route('/api/status', methods=['GET'])
 def get_status():

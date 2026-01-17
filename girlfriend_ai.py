@@ -173,7 +173,7 @@ class ExplosiveGirlfriendAI:
     def _update_config_json(self):
         """Create or update config.json file with current anger level and image configuration"""
         pass
-    def chat(self, user_input: str) -> Dict:
+    def chat(self, user_input: str,expression: Optional[str] = None) -> Dict:
         """
         Process user input and generate reply
         
@@ -185,6 +185,7 @@ class ExplosiveGirlfriendAI:
         """
         # Get current anger level
         current_anger = self.conversation.get_last_anger_level()
+        user_expression_text = f"User's facial expression: {expression}" if expression else ""
         
         # Build complete prompt
         emotion_context = self._get_emotion_context(current_anger)
@@ -199,6 +200,9 @@ class ExplosiveGirlfriendAI:
 
 【User just said】
 {user_input}
+
+[User expression]
+{user_expression_text}
 
 【Your Task】
 1. Based on what the user said and your current emotional state, give a reply that matches your personality
