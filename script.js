@@ -85,94 +85,11 @@ async function sendValue() {
     // Clear input
     userInput.value = '';
     
-<<<<<<< HEAD
     // Try to send via WebSocket if available
     const websocket = window.ws || (typeof ws !== 'undefined' ? ws : null);
     if (websocket && websocket.readyState === WebSocket.OPEN) {
         websocket.send(JSON.stringify({ type: 'message', content: message }));
         console.log('Sent via WebSocket:', message);
-=======
-<<<<<<< ours
-=======
-    // Show loading state
->>>>>>> theirs
-    gfText.innerHTML = '<p>Thinking...</p>';
-    
-    try {
-        const response = await fetch('http://localhost:8888/api/chat', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ message: message })
-        });
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        console.log('Received from API:', data);
-        
-        if (data.success) {
-<<<<<<< ours
-            gfText.innerHTML = `<p>${data.response}</p>`;
-            updateScale(data.anger_level);
-=======
-            // Update AI response text
-            gfText.innerHTML = `<p>${data.response}</p>`;
-            
-            // Update image based on anger level (0-100 maps to 0-100 scale)
-            // Higher anger = lower scale (more angry = angrier image)
-            // 100 anger = 0 scale (most angry = gfLVL1), 0 anger = 100 scale (calm = gfLVL5)
-            const invertedScale = 100 - data.anger_level;
-            updateScale(invertedScale);
-            
-            // Update face gesture based on anger level
->>>>>>> theirs
-            updateFaceGesture(data.anger_level);
-            userInput.value = '';
-        } else {
-<<<<<<< ours
-=======
-            // Handle error response
->>>>>>> theirs
-            gfText.innerHTML = `<p style="color: red;">Error: ${data.error || 'Unknown error'}</p>`;
-        }
-    } catch (error) {
-        console.error('Error:', error);
-        gfText.innerHTML = `<p style="color: red;">Failed to connect to server. Make sure the Flask server is running on http://localhost:8888</p>`;
-    } finally {
-        userInput.disabled = false;
-        sendButton.disabled = false;
-        sendButton.textContent = originalButtonText;
-        userInput.focus();
-    }
-}
-
-// Update face gesture based on anger level (higher = more angry)
-function updateFaceGesture(angerLevel) {
-<<<<<<< ours
-    const angerLvl = document.getElementById('angerLvl');
-    if (angerLvl) {
-        angerLvl.textContent = angerLevel;
-    }
-
-=======
->>>>>>> theirs
-    const faceGesture = document.getElementById('faceGesture');
-    
-    if (angerLevel >= 100) {
-        faceGesture.textContent = 'KABOOM 💥';
-    } else if (angerLevel >= 80) {
-        faceGesture.textContent = 'Explosive/Cold War 💢';
-    } else if (angerLevel >= 60) {
-        faceGesture.textContent = 'Very Angry 😡';
-    } else if (angerLevel >= 40) {
-        faceGesture.textContent = 'Obviously Angry 😠';
-    } else if (angerLevel >= 20) {
-        faceGesture.textContent = 'Slightly Upset 😐';
->>>>>>> parent of ca2f3d3 (Merge branch 'main' of https://github.com/senkyte/explosivegf)
     } else {
         // Fallback: Try HTTP POST to /chat endpoint
         try {
