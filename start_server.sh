@@ -17,6 +17,7 @@ if [ ! -f .env ]; then
 fi
 
 # Start the server
-echo "Starting Flask server on http://localhost:8888"
-source venv/bin/activate && python server.py
-
+HOST="${HOST:-127.0.0.1}"
+PORT="${PORT:-8888}"
+echo "Starting Flask server on http://${HOST}:${PORT}"
+source venv/bin/activate && HOST="${HOST}" PORT="${PORT}" python server.py

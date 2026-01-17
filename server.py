@@ -3,6 +3,7 @@ Flask server for Explosive Girlfriend AI
 Provides REST API endpoint for chat functionality
 """
 
+import os
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from dotenv import load_dotenv
@@ -104,10 +105,11 @@ def health_check():
     }), 200
 
 if __name__ == '__main__':
-    PORT = 8888
+    PORT = int(os.getenv('PORT', '8888'))
+    HOST = os.getenv('HOST', '127.0.0.1')
+    DEBUG = os.getenv('FLASK_DEBUG', 'false').lower() in ('1', 'true', 'yes')
     print("Starting Explosive Girlfriend AI Server...")
-    print(f"Frontend: http://localhost:{PORT}/")
-    print(f"API endpoint: http://localhost:{PORT}/api/chat")
-    print(f"Health check: http://localhost:{PORT}/health")
-    app.run(debug=True, port=PORT)
-
+    print(f"Frontend: http://{HOST}:{PORT}/")
+    print(f"API endpoint: http://{HOST}:{PORT}/api/chat")
+    print(f"Health check: http://{HOST}:{PORT}/health")
+    app.run(debug=DEBUG, host=HOST, port=PORT)
