@@ -181,11 +181,11 @@ class ExplosiveGirlfriendAI:
         config = {
             "anger": anger_level,
             "images": [
-                {"range": [0, 20]},    # image1.jpeg
-                {"range": [20, 40]},   # image2.jpeg
-                {"range": [40, 60]},   # image3.jpeg
-                {"range": [60, 80]},   # image4.jpeg
-                {"range": [80, 100]}   # image5.jpeg
+                {"range": [0, 20]},    # image1.gif
+                {"range": [20, 40]},   # image2.gif
+                {"range": [40, 60]},   # image3.gif
+                {"range": [60, 80]},   # image4.gif
+                {"range": [80, 100]}   # image5.gif
             ]
         }
         
