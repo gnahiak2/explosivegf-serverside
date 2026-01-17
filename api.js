@@ -14,6 +14,8 @@ document.addEventListener('DOMContentLoaded', function() {
             try {
                 const receivedData = JSON.parse(e.data);
                 console.log('WebSocket received:', receivedData);
+                let userFace = document.getElementById("userFaceGesture");
+                userFace.innerText = receivedData.expression;
                 // Add any handling you need here
             } catch (error) {
                 console.error('Error parsing WebSocket message:', error);
