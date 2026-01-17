@@ -18,5 +18,5 @@ fi
 
 # Start the server
 echo "Starting Flask server on http://localhost:8888"
-python3 server.py
+source venv/bin/activate && python server.py
 

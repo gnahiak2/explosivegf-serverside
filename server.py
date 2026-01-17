@@ -5,14 +5,25 @@ Provides REST API endpoint for chat functionality
 
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+from dotenv import load_dotenv
 from girlfriend_ai import ExplosiveGirlfriendAI
 
+# Load environment variables from .env file
+load_dotenv()
+
 # Initialize Flask app
-app = Flask(__name__)
+app = Flask(__name__, static_folder='.', static_url_path='')
 CORS(app)  # Enable CORS for all routes
 
 # Initialize AI instance (singleton to maintain conversation history)
 ai = ExplosiveGirlfriendAI()
+
+@app.route('/')
+def index():
+    """
+    Serve the main HTML page
+    """
+    return app.send_static_file('index.html')
 
 @app.route('/api/chat', methods=['POST'])
 def chat():
@@ -95,6 +106,7 @@ def health_check():
 if __name__ == '__main__':
     PORT = 8888
     print("Starting Explosive Girlfriend AI Server...")
+    print(f"Frontend: http://localhost:{PORT}/")
     print(f"API endpoint: http://localhost:{PORT}/api/chat")
     print(f"Health check: http://localhost:{PORT}/health")
     app.run(debug=True, port=PORT)
