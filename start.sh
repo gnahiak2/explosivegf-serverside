@@ -1,6 +1,4 @@
 #!/bin/bash
-# Start Flask server for Explosive Girlfriend AI
-
 cd "$(dirname "$0")"
 
 if lsof -ti:8888 > /dev/null 2>&1; then
@@ -9,12 +7,12 @@ if lsof -ti:8888 > /dev/null 2>&1; then
     sleep 1
 fi
 
-if [ ! -f .env ]; then
-    echo "Warning: .env file not found. Make sure GEMINI_API_KEY is set."
-fi
+source venv/bin/activate
 
-echo "Starting Flask server on 0.0.0.0:8888"
+echo "Starting Gunicorn on 0.0.0.0:8888"
 echo "Public URL: http://18.143.187.4:8888"
 
-source venv/bin/activate
-python server.py
+gunicorn \
+  --bind 0.0.0.0:8888 \
+  --workers 2 \
+  server:app
