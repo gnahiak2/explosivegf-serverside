@@ -1,21 +1,67 @@
+<<<<<<< ours
 let scale = 75; // Initial anger level
 
 function updateScale(value) {
     scale = parseInt(value);
     console.log('updateScale called with:', value, 'scale is now:', scale);
+=======
+let scale;
+let config;
+let configPollInterval;
+
+function updateScale(value) {
+    scale = parseInt(value);
+>>>>>>> theirs
     updateImage();
 }
 
 function updateImage() {
+<<<<<<< ours
     console.log('updateImage called, scale:', scale);
     
     // Hide all images
     for (let i = 1; i <= 5; i++) {
         const imgElement = document.getElementById('gfImg' + i);
+=======
+    // If config exists, use config-based logic
+    if (config && config.images) {
+        // Hide all images
+        for (let i = 1; i <= config.images.length; i++) {
+            const imgElement = document.getElementById('gfImg' + i);
+            if (imgElement) {
+                imgElement.style.display = 'none';
+            }
+        }
+        // Find and show the appropriate image based on scale
+        for (let i = 0; i < config.images.length; i++) {
+            const imgConfig = config.images[i];
+            if (scale >= imgConfig.range[0] && scale <= imgConfig.range[1]) {
+                const imgElement = document.getElementById('gfImg' + (i + 1));
+                if (imgElement) {
+                    imgElement.style.display = 'block';
+                }
+                break;
+            }
+        }
+    } else {
+        // Fallback: simple logic for gfLVL1-5 images
+        for (let i = 1; i <= 5; i++) {
+            const imgElement = document.getElementById('gfImg' + i);
+            if (imgElement) {
+                imgElement.style.display = 'none';
+            }
+        }
+        // Show the appropriate image based on scale (0-100 maps to 1-5)
+        let index = Math.floor(scale / 25) + 1;
+        if (index > 5) index = 5;
+        if (index < 1) index = 1;
+        const imgElement = document.getElementById('gfImg' + index);
+>>>>>>> theirs
         if (imgElement) {
             imgElement.style.display = 'none';
         }
     }
+<<<<<<< ours
     
     // Determine which image to show based on scale (0-120)
     let imageIndex;
@@ -39,6 +85,26 @@ function updateImage() {
         console.log('Displayed:', imgElement.id);
     } else {
         console.error('Image element not found:', 'gfImg' + imageIndex);
+=======
+}
+
+async function loadConfig() {
+    try {
+        const response = await fetch('config.json?t=' + Date.now()); // Add timestamp to prevent caching
+        config = await response.json();
+        scale = config.anger;
+        
+        // Update face gesture with anger level
+        const faceGesture = document.getElementById('faceGesture');
+        if (faceGesture) {
+            faceGesture.textContent = 'Anger: ' + scale;
+        }
+        
+        // Update image
+        updateImage();
+    } catch (error) {
+        console.error('Failed to load config.json:', error);
+>>>>>>> theirs
     }
 }
 
@@ -48,9 +114,14 @@ document.addEventListener('DOMContentLoaded', async function () {
 
     // Create images (or placeholders)
     const gfSprite = document.getElementById('gfSprite');
+<<<<<<< ours
     if (gfSprite) {
         console.log('Creating image elements');
         for (let i = 1; i <= 5; i++) {
+=======
+    if (gfSprite && config) {
+        for (let i = 0; i < config.images.length; i++) {
+>>>>>>> theirs
             const img = document.createElement('img');
             img.id = 'gfImg' + i;
             img.src = 'image' + i + '.gif';
@@ -87,7 +158,11 @@ document.addEventListener('DOMContentLoaded', async function () {
     // Initial update
     updateImage();
     
+<<<<<<< ours
     // Set initial anger level display
+=======
+    // Set initial anger level display (75 = Slightly Upset)
+>>>>>>> theirs
     updateFaceGesture(75);
 });
 
@@ -108,6 +183,10 @@ async function sendValue() {
     sendButton.disabled = true;
     sendButton.textContent = 'Sending...';
     
+<<<<<<< ours
+=======
+    // Show loading state
+>>>>>>> theirs
     gfText.innerHTML = '<p>Thinking...</p>';
     
     try {
@@ -127,11 +206,28 @@ async function sendValue() {
         console.log('Received from API:', data);
         
         if (data.success) {
+<<<<<<< ours
             gfText.innerHTML = `<p>${data.response}</p>`;
             updateScale(data.anger_level);
+=======
+            // Update AI response text
+            gfText.innerHTML = `<p>${data.response}</p>`;
+            
+            // Update image based on anger level (0-100 maps to 0-100 scale)
+            // Higher anger = lower scale (more angry = angrier image)
+            // 100 anger = 0 scale (most angry = gfLVL1), 0 anger = 100 scale (calm = gfLVL5)
+            const invertedScale = 100 - data.anger_level;
+            updateScale(invertedScale);
+            
+            // Update face gesture based on anger level
+>>>>>>> theirs
             updateFaceGesture(data.anger_level);
             userInput.value = '';
         } else {
+<<<<<<< ours
+=======
+            // Handle error response
+>>>>>>> theirs
             gfText.innerHTML = `<p style="color: red;">Error: ${data.error || 'Unknown error'}</p>`;
         }
     } catch (error) {
@@ -147,11 +243,14 @@ async function sendValue() {
 
 // Update face gesture based on anger level (higher = more angry)
 function updateFaceGesture(angerLevel) {
+<<<<<<< ours
     const angerLvl = document.getElementById('angerLvl');
     if (angerLvl) {
         angerLvl.textContent = angerLevel;
     }
 
+=======
+>>>>>>> theirs
     const faceGesture = document.getElementById('faceGesture');
     
     if (angerLevel >= 100) {
@@ -171,6 +270,7 @@ function updateFaceGesture(angerLevel) {
 
 // Allow Enter key to send message
 document.addEventListener('DOMContentLoaded', function() {
+<<<<<<< ours
     const sendButton = document.getElementById('sendButton');
     if (sendButton) {
         sendButton.addEventListener('click', function(e) {
@@ -180,14 +280,23 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
+=======
+>>>>>>> theirs
     const userInput = document.getElementById('userInput');
     if (userInput) {
         userInput.addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
+<<<<<<< ours
                 e.preventDefault();
                 e.stopPropagation();
+=======
+>>>>>>> theirs
                 sendValue();
             }
         });
     }
+<<<<<<< ours
 });
+=======
+});
+>>>>>>> theirs
