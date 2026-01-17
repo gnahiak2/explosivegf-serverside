@@ -201,7 +201,7 @@ class ExplosiveGirlfriendAI:
 【User just said】
 {user_input}
 
-[User expression]
+[User expression. Call them out if it looks weird!]
 {user_expression_text}
 
 【Your Task】
