@@ -2,24 +2,47 @@ let scale;
 let config;
 let configPollInterval;
 
+function updateScale(value) {
+    scale = parseInt(value);
+    updateImage();
+}
+
 function updateImage() {
-    if (!config) return; // Wait for config to load
-    // Hide all images
-    for (let i = 1; i <= config.images.length; i++) {
-        const imgElement = document.getElementById('gfImg' + i);
-        if (imgElement) {
-            imgElement.style.display = 'none';
-        }
-    }
-    // Find and show the appropriate image based on scale
-    for (let i = 0; i < config.images.length; i++) {
-        const imgConfig = config.images[i];
-        if (scale >= imgConfig.range[0] && scale <= imgConfig.range[1]) {
-            const imgElement = document.getElementById('gfImg' + (i + 1));
+    // If config exists, use config-based logic
+    if (config && config.images) {
+        // Hide all images
+        for (let i = 1; i <= config.images.length; i++) {
+            const imgElement = document.getElementById('gfImg' + i);
             if (imgElement) {
-                imgElement.style.display = 'block';
+                imgElement.style.display = 'none';
             }
-            break;
+        }
+        // Find and show the appropriate image based on scale
+        for (let i = 0; i < config.images.length; i++) {
+            const imgConfig = config.images[i];
+            if (scale >= imgConfig.range[0] && scale <= imgConfig.range[1]) {
+                const imgElement = document.getElementById('gfImg' + (i + 1));
+                if (imgElement) {
+                    imgElement.style.display = 'block';
+                }
+                break;
+            }
+        }
+    } else {
+        // Fallback: simple logic for gfLVL1-5 images
+        for (let i = 1; i <= 5; i++) {
+            const imgElement = document.getElementById('gfImg' + i);
+            if (imgElement) {
+                imgElement.style.display = 'none';
+            }
+        }
+        // Show the appropriate image based on scale (0-100 maps to 1-5)
+        let index = Math.floor(scale / 25) + 1;
+        if (index > 5) index = 5;
+        if (index < 1) index = 1;
+        const imgElement = document.getElementById('gfImg' + index);
+        if (imgElement) {
+            imgElement.style.display = 'block';
         }
     }
 }
@@ -63,63 +86,104 @@ document.addEventListener('DOMContentLoaded', async function () {
     // Initial update
     updateImage();
     
-    // Poll config.json every 2 seconds to check for updates
-    configPollInterval = setInterval(loadConfig, 2000);
+    // Set initial anger level display (75 = Slightly Upset)
+    updateFaceGesture(75);
 });
 
-// Send user message function
+// Send message to AI and update UI
 async function sendValue() {
     const userInput = document.getElementById('userInput');
     const gfText = document.getElementById('gfText');
-    
-    if (!userInput) return;
-    
     const message = userInput.value.trim();
-    if (!message) return;
     
-    // Show user message
-    if (gfText) {
-        gfText.innerHTML = '<p><strong>You:</strong> ' + message + '</p><p>Waiting for response...</p>';
+    // Check if message is empty
+    if (!message) {
+        alert('Please enter a message!');
+        return;
     }
     
-    // Clear input
-    userInput.value = '';
+    // Disable input and button while processing
+    userInput.disabled = true;
+    const sendButton = document.querySelector('button[onclick="sendValue()"]');
+    const originalButtonText = sendButton.textContent;
+    sendButton.disabled = true;
+    sendButton.textContent = 'Sending...';
     
-    // Try to send via WebSocket if available
-    const websocket = window.ws || (typeof ws !== 'undefined' ? ws : null);
-    if (websocket && websocket.readyState === WebSocket.OPEN) {
-        websocket.send(JSON.stringify({ type: 'message', content: message }));
-        console.log('Sent via WebSocket:', message);
-    } else {
-        // Fallback: Try HTTP POST to /chat endpoint
-        try {
-            const response = await fetch('/chat', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ message: message })
-            });
-            
-            if (response.ok) {
-                const data = await response.json();
-                if (gfText) {
-                    gfText.innerHTML = '<p><strong>You:</strong> ' + message + '</p><p><strong>Girlfriend:</strong> ' + data.response + '</p>';
-                }
-                // Force reload config to update anger level
-                await loadConfig();
-            } else {
-                throw new Error('HTTP request failed');
-            }
-        } catch (error) {
-            // If both WebSocket and HTTP fail, show error
-            console.error('Failed to send message:', error);
-            if (gfText) {
-                gfText.innerHTML = '<p><strong>You:</strong> ' + message + '</p><p style="color: red;">Error: Could not connect to server. Make sure the backend is running.</p>';
-            }
+    // Show loading state
+    gfText.innerHTML = '<p>Thinking...</p>';
+    
+    try {
+        // Send POST request to Flask API
+        const response = await fetch('http://localhost:8888/api/chat', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ message: message })
+        });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
         }
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            // Update AI response text
+            gfText.innerHTML = `<p>${data.response}</p>`;
+            
+            // Update image based on anger level (0-100 maps to 0-100 scale)
+            // Higher anger = lower scale (more angry = angrier image)
+            // 100 anger = 0 scale (most angry = gfLVL1), 0 anger = 100 scale (calm = gfLVL5)
+            const invertedScale = 100 - data.anger_level;
+            updateScale(invertedScale);
+            
+            // Update face gesture based on anger level
+            updateFaceGesture(data.anger_level);
+            
+            // Clear input field
+            userInput.value = '';
+        } else {
+            // Handle error response
+            gfText.innerHTML = `<p style="color: red;">Error: ${data.error || 'Unknown error'}</p>`;
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        gfText.innerHTML = `<p style="color: red;">Failed to connect to server. Make sure the Flask server is running on http://localhost:8888</p>`;
+    } finally {
+        // Re-enable input and button
+        userInput.disabled = false;
+        sendButton.disabled = false;
+        sendButton.textContent = originalButtonText;
+        userInput.focus();
     }
 }
 
-// Make sendValue available globally
-window.sendValue = sendValue;
+// Update face gesture based on anger level (higher = more angry)
+function updateFaceGesture(angerLevel) {
+    const faceGesture = document.getElementById('faceGesture');
+    
+    if (angerLevel >= 80) {
+        faceGesture.textContent = 'Explosive/Cold War 💢';
+    } else if (angerLevel >= 60) {
+        faceGesture.textContent = 'Very Angry 😡';
+    } else if (angerLevel >= 40) {
+        faceGesture.textContent = 'Obviously Angry 😠';
+    } else if (angerLevel >= 20) {
+        faceGesture.textContent = 'Slightly Upset 😐';
+    } else {
+        faceGesture.textContent = 'Calm/Happy 😊';
+    }
+}
+
+// Allow Enter key to send message
+document.addEventListener('DOMContentLoaded', function() {
+    const userInput = document.getElementById('userInput');
+    if (userInput) {
+        userInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendValue();
+            }
+        });
+    }
+});

@@ -61,7 +61,7 @@ class ConversationHistory:
         """Get last anger level"""
         if self.emotion_history:
             return self.emotion_history[-1]["anger_level"]
-        return 50  # Default medium emotion
+        return 75  # Default initial anger level (higher = more angry)
 
 
 class ExplosiveGirlfriendAI:
@@ -105,13 +105,13 @@ class ExplosiveGirlfriendAI:
 - Occasionally use cute tone but immediately hide it (tsundere nature)
 
 【Emotional States】
-- 80-100 (Calm/Happy): Normal conversation, occasional tsundere, caring but not direct. Example: "How was your day? ...I-I'm not asking because I care!"
-- 60-79 (Slightly Upset): Tone becomes cold, short replies, starting to complain. Example: "Oh." "Whatever."
+- 0-19 (Calm/Happy): Normal conversation, occasional tsundere, caring but not direct. Example: "How was your day? ...I-I'm not asking because I care!"
+- 20-39 (Slightly Upset): Tone becomes cold, short replies, starting to complain. Example: "Oh." "Whatever."
 - 40-59 (Obviously Angry): Questioning, bringing up past issues, harsh tone. Example: "Are you even listening to me?! You did this last time too!"
-- 20-39 (Very Angry): Refusing to communicate, short replies. Example: "I don't want to talk to you." "You're too much!"
-- 0-19 (Explosive/Cold War): Silent (only "..." replies) or extremely emotional short sentences. Example: "......" "I'm really angry!"
+- 60-79 (Very Angry): Refusing to communicate, short replies. Example: "I don't want to talk to you." "You're too much!"
+- 80-100 (Explosive/Cold War): Silent (only "..." replies) or extremely emotional short sentences. Example: "......" "I'm really angry!"
 
-【Things That Make You Angry】 (Decrease anger level - you decide by how much)
+【Things That Make You Angry】 (Increase anger level - you decide by how much)
 - Being dismissed: Short replies like "ok", "yeah", "sure", "fine"
 - Being ignored: Not answering questions, changing topics, not responding to what was said
 - Mentioning other girls: Talking about other women, ex-girlfriends, female friends/colleagues
@@ -128,7 +128,7 @@ class ExplosiveGirlfriendAI:
 - Breaking promises: Not keeping commitments, making excuses
 - Being secretive: Hiding things, being evasive about questions
 
-【Things That Make You Happy】 (Increase anger level - you decide by how much)
+【Things That Make You Happy】 (Decrease anger level - you decide by how much)
 - Sincere apologies: Admitting mistakes and expressing genuine remorse
 - Active care: Asking about her feelings and wellbeing
 - Genuine compliments: Heartfelt praise and appreciation
@@ -148,17 +148,17 @@ class ExplosiveGirlfriendAI:
 5. Use emojis appropriately but don't overuse them"""
     
     def _get_emotion_context(self, current_anger: int) -> str:
-        """Generate emotion context based on current anger level"""
+        """Generate emotion context based on current anger level (higher = more angry)"""
         if current_anger >= 80:
-            return "【Current Emotion】You're in a good mood, still a bit tsundere on the surface but willing to have normal conversation. Actually quite happy inside."
+            return "【Current Emotion】You're extremely angry, already exploded. Either silent or saying the harshest things. Really really angry!!!"
         elif current_anger >= 60:
-            return "【Current Emotion】You're a bit upset, feeling like the other person doesn't value you enough. Your tone is starting to get cold. Feeling somewhat unhappy."
+            return "【Current Emotion】You're very angry, don't want to talk properly anymore, considering whether to ignore them. About to explode!"
         elif current_anger >= 40:
             return "【Current Emotion】You're very angry, feeling like the other person went too far. Can't help but question and complain. Really unhappy!"
         elif current_anger >= 20:
-            return "【Current Emotion】You're very angry, don't want to talk properly anymore, considering whether to ignore them. About to explode!"
+            return "【Current Emotion】You're a bit upset, feeling like the other person doesn't value you enough. Your tone is starting to get cold. Feeling somewhat unhappy."
         else:
-            return "【Current Emotion】You're extremely angry, already exploded. Either silent or saying the harshest things. Really really angry!!!"
+            return "【Current Emotion】You're in a good mood, still a bit tsundere on the surface but willing to have normal conversation. Actually quite happy inside."
     
     def _analyze_user_input(self, user_input: str, current_anger: int) -> int:
         """
@@ -282,24 +282,24 @@ Remember: Maintain tsundere personality, even when angry stay cute!"""
         self._update_config_json()
     
     def get_emotion_status(self) -> Dict:
-        """Get current emotion status"""
+        """Get current emotion status (higher anger_level = more angry)"""
         anger_level = self.conversation.get_last_anger_level()
         
         if anger_level >= 80:
-            status = "Calm/Happy"
-            emoji = "😊"
+            status = "Explosive/Cold War"
+            emoji = "💢"
         elif anger_level >= 60:
-            status = "Slightly Upset"
-            emoji = "😐"
+            status = "Very Angry"
+            emoji = "😡"
         elif anger_level >= 40:
             status = "Obviously Angry"
             emoji = "😠"
         elif anger_level >= 20:
-            status = "Very Angry"
-            emoji = "😡"
+            status = "Slightly Upset"
+            emoji = "😐"
         else:
-            status = "Explosive/Cold War"
-            emoji = "💢"
+            status = "Calm/Happy"
+            emoji = "😊"
         
         return {
             "anger_level": anger_level,
